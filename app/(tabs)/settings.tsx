@@ -1,139 +1,141 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Switch, TouchableOpacity, Platform } from 'react-native';
+import { View, StyleSheet, ScrollView, StatusBar, Linking, TextInput, Button } from 'react-native';
+import { Text, useTheme, List } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFonts, Inter_400Regular, Inter_600SemiBold } from '@expo-google-fonts/inter';
-import { Moon, Bell, Trash } from 'lucide-react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SettingsScreen() {
-  const [darkMode, setDarkMode] = useState(false);
-  const [notifications, setNotifications] = useState(true);
+      const theme = useTheme();
 
-  const [fontsLoaded] = useFonts({
-    'Inter-Regular': Inter_400Regular,
-    'Inter-SemiBold': Inter_600SemiBold,
-  });
+      const openLink = (url: string) => {
+            Linking.openURL(url).catch((err) => console.error("Failed to open URL:", err));
+      };
+      const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+      const [feedback, setFeedback] = useState('');
 
-  const clearAllTasks = async () => {
-    try {
-      await AsyncStorage.removeItem('tasks');
-      alert('All tasks have been cleared!');
-    } catch (error) {
-      console.error('Error clearing tasks:', error);
-      alert('Failed to clear tasks');
-    }
-  };
 
-  if (!fontsLoaded) {
-    return null;
-  }
+      const handleSendFeedback = () => {
+            const mailtoLink = `mailto:mahady1996hasan@gmail.com?subject=Feedback&body=${encodeURIComponent(feedback)}`;
+            openLink(mailtoLink);
+            setFeedback(''); // Clear feedback after sending
+            setIsFeedbackOpen(false); // Close feedback input
+      };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Settings</Text>
+      return (
+            <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+                  <StatusBar barStyle={'dark-content'} />
+                  <ScrollView contentContainerStyle={styles.scrollViewContent}>
 
-      <View style={styles.section}>
-        <View style={styles.settingItem}>
-          <View style={styles.settingLeft}>
-            <Moon size={24} color="#007AFF" />
-            <Text style={styles.settingText}>Dark Mode</Text>
-          </View>
-          <Switch
-            value={darkMode}
-            onValueChange={setDarkMode}
-            trackColor={{ false: '#D1D1D6', true: '#007AFF' }}
-          />
-        </View>
+                        {/* About App */}
+                        <List.Section>
+                              <List.Subheader>About This App</List.Subheader>
+                              <List.Item
+                                    title="App Name"
+                                    description="TaskWhiz"
+                              />
+                              <List.Item
+                                    title="Version"
+                                    description="1.0.0"
+                              />
+                              <List.Item
+                                    title="Developed By"
+                                    description="FutureCode Studios"
+                              />
+                        </List.Section>
 
-        {Platform.OS !== 'web' && (
-          <View style={styles.settingItem}>
-            <View style={styles.settingLeft}>
-              <Bell size={24} color="#007AFF" />
-              <Text style={styles.settingText}>Notifications</Text>
-            </View>
-            <Switch
-              value={notifications}
-              onValueChange={setNotifications}
-              trackColor={{ false: '#D1D1D6', true: '#007AFF' }}
-            />
-          </View>
-        )}
+                        {/* Legal & Support */}
+                        <List.Section>
+                              <List.Subheader>Legal & Support</List.Subheader>
+                              <List.Item
+                                    title="Privacy Policy"
+                                    description="Read how we handle your data"
+                                    onPress={() => openLink('https://yourwebsite.com/privacy')}
+                              />
+                              <List.Item
+                                    title="Terms & Conditions"
+                                    description="View our terms of service"
+                                    onPress={() => openLink('https://yourwebsite.com/terms')}
+                              />
 
-        <TouchableOpacity
-          style={styles.dangerButton}
-          onPress={() => {
-            if (confirm('Are you sure you want to clear all tasks? This cannot be undone.')) {
-              clearAllTasks();
-            }
-          }}>
-          <Trash size={24} color="#FFFFFF" />
-          <Text style={styles.dangerButtonText}>Clear All Tasks</Text>
-        </TouchableOpacity>
-      </View>
+                        </List.Section>
 
-      <Text style={styles.version}>Version 1.0.0</Text>
-    </SafeAreaView>
-  );
+                        {/* Feedback & Contribution */}
+                        <List.Section>
+                              <List.Subheader>Feedback</List.Subheader>
+                              {!isFeedbackOpen ? (
+                                    <List.Item
+                                          title="Send Feedback"
+                                          description="Share your experience and suggestions"
+                                          onPress={() => setIsFeedbackOpen(true)}
+                                    />
+                              ) : (
+                                    <View style={styles.feedbackContainer}>
+                                          <TextInput
+                                                style={styles.textArea}
+                                                multiline
+                                                numberOfLines={4}
+                                                placeholder="Enter your feedback here"
+                                                value={feedback}
+                                                onChangeText={setFeedback}
+                                          />
+                                          <Button
+                                                title="Send Feedback"
+                                                onPress={handleSendFeedback}
+                                          />
+
+                                          <Button
+
+                                                title="Cancel"
+                                                onPress={() => setIsFeedbackOpen(false)}
+                                          />
+                                    </View>
+                              )}
+                        </List.Section>
+
+                        {/* Contact Information */}
+                        <List.Section>
+                              <List.Subheader>Contact</List.Subheader>
+                              <List.Item
+                                    title="Email"
+                                    description="mahady1996hasan@gmail.com"
+                                    onPress={() => openLink('mailto:mahady1996hasan@gmail.com')}
+                              />
+                              <List.Item
+                                    title="Phone"
+                                    style={{
+                                          marginBottom: 35,
+                                    }}
+                                    description="+88019611530035"
+                                    onPress={() => openLink('tel:+88019611530035')}
+                              />
+                        </List.Section>
+                  </ScrollView>
+            </SafeAreaView>
+      );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F2F2F7',
-    padding: 20,
-  },
-  title: {
-    fontSize: 34,
-    fontFamily: 'Inter-SemiBold',
-    color: '#000000',
-    marginBottom: 20,
-  },
-  section: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  settingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
-  },
-  settingLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  settingText: {
-    fontSize: 17,
-    fontFamily: 'Inter-Regular',
-    color: '#000000',
-    marginLeft: 12,
-  },
-  dangerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    backgroundColor: '#FF3B30',
-  },
-  dangerButtonText: {
-    fontSize: 17,
-    fontFamily: 'Inter-Regular',
-    color: '#FFFFFF',
-    marginLeft: 8,
-  },
-  version: {
-    fontSize: 15,
-    fontFamily: 'Inter-Regular',
-    color: '#8E8E93',
-    textAlign: 'center',
-    marginTop: 20,
-  },
+      container: {
+            flex: 1,
+      },
+      scrollViewContent: {
+            padding: 16,
+      },
+      feedbackContainer: {
+            marginTop: 16,
+            display: 'flex',
+            // need to gap
+            gap: 10,
+      },
+      textArea: {
+            height: 100,
+            borderColor: '#ccc',
+            borderWidth: 1,
+            borderRadius: 4,
+            padding: 10,
+            marginBottom: 10,
+            textAlignVertical: 'top', // Keeps text at the top of the text area
+      },
+      cancel: {
+            marginTop: 10,
+      },
 });
